@@ -228,6 +228,10 @@ void PasswdMgr::hashArgon2(std::vector<uint8_t> &ret_hash, std::vector<uint8_t> 
 
 void PasswdMgr::addUser(const char *name, const char *passwd) {
    
+   std::vector<uint8_t> hash, salt;
+   std::string namePass(name);
+   
+   
    if(checkUser(name))
    {
       return;
@@ -235,8 +239,26 @@ void PasswdMgr::addUser(const char *name, const char *passwd) {
    else
    {
       //hash and pass
-      //if(writeUser(name,) < 0) throw(pwfile_error);
+      genSalt(&salt,saltlen);
+      hashArgon2(hash,salt,passwd,&salt);
+
+      FileFD pwfile(_pwd_file.c_str());
+      if (!pwfile.openFile(FileFD::readfd)) throw pwfile_error("Could not open passwd file for reading");
+
+      if(writeUser(pwfile,namePass,hash,salt) < 0) throw(pwfile_error);
    }
    
 }
 
+void PasswdMgr::genSalt(std::vector<uint8_t> *s, const int len) {
+    
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+
+    for (int i = 0; i < len; ++i) {
+        s->push_back( alphanum[rand() % (sizeof(alphanum) - 1)] );
+    }
+
+}
