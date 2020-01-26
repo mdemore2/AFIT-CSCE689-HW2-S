@@ -5,6 +5,9 @@
 #include <algorithm>
 #include <cstring>
 #include <list>
+#include <ext/stdio_filebuf.h>
+#include <fstream>
+#include <string>
 #include "PasswdMgr.h"
 #include "FileDesc.h"
 #include "strfuncts.h"
@@ -103,11 +106,17 @@ bool PasswdMgr::changePasswd(const char *name, const char *passwd) {
 
 bool PasswdMgr::readUser(FileFD &pwfile, std::string &name, std::vector<uint8_t> &hash, std::vector<uint8_t> &salt)
 {
-   // Insert your perfect code here!
-   std::string nextLine;
-   //std::FILE passFile = new std::FILE(pwfile);
-   //https://stackoverflow.com/questions/2746168/how-to-construct-a-c-fstream-from-a-posix-file-descriptor
-   std::getline(pwfile,nextLine);
+   std::string readNewLine;
+   try{
+   if(pwfile.readStr(readNewLine) < 0) return false; //read last newline from hash/salt line
+
+   if(pwfile.readStr(name) < 0) return false;
+   
+   if(pwfile.readBytes(hash,32) < 0) return false;
+  
+   if(pwfile.readBytes(salt,16) < 0) return false;
+   }catch(pwfile_error){}
+
 
    return true;
 }
@@ -129,7 +138,19 @@ int PasswdMgr::writeUser(FileFD &pwfile, std::string &name, std::vector<uint8_t>
 {
    int results = 0;
 
-   // Insert your wild code here!
+   try{
+   std::vector<char> name_vector(name.begin(),name.end());
+
+   results += pwfile.writeBytes(name_vector);
+   results += pwfile.writeByte('\n');
+
+   results += pwfile.writeBytes(hash);
+   results += pwfile.writeBytes(salt);
+   results += pwfile.writeByte('\n');
+   } catch(pwfile_error){}
+  
+
+
 
    return results; 
 }
@@ -189,10 +210,12 @@ bool PasswdMgr::findUser(const char *name, std::vector<uint8_t> &hash, std::vect
  *
  *    Throws: runtime_error if the salt passed in is not the right size
  *****************************************************************************************************/
-void PasswdMgr::hashArgon2(std::vector<uint8_t> &ret_hash, std::vector<uint8_t> &ret_salt, 
-                           const char *in_passwd, std::vector<uint8_t> *in_salt) {
-   // Hash those passwords!!!!
-   argon2i_hash_raw(2,(1<<16),1,&in_passwd,strlen(in_passwd),&in_salt,16,&ret_hash,32);
+void PasswdMgr::hashArgon2(std::vector<uint8_t> &ret_hash, std::vector<uint8_t> &ret_salt, const char *in_passwd, std::vector<uint8_t> *in_salt) {
+  
+   if(in_salt->size() < saltlen) throw std::runtime_error("invalid salt length");
+
+   argon2i_hash_raw(2,(1<<16),1,&in_passwd,strlen(in_passwd),&in_salt,saltlen,&ret_hash,hashlen);
+   
 
 }
 
@@ -204,7 +227,16 @@ void PasswdMgr::hashArgon2(std::vector<uint8_t> &ret_hash, std::vector<uint8_t> 
  ****************************************************************************************************/
 
 void PasswdMgr::addUser(const char *name, const char *passwd) {
-   // Add those users!
+   
+   if(checkUser(name))
+   {
+      return;
+   }
+   else
+   {
+      //hash and pass
+      //if(writeUser(name,) < 0) throw(pwfile_error);
+   }
    
 }
 
