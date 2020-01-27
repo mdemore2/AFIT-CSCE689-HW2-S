@@ -19,12 +19,18 @@ ServerLog::~ServerLog() {
 
 void ServerLog::writeLog(std::string msg)
 {
+    addTimeStamp();
+    if(msg.back() != '\n')
+    {
+        msg.push_back('\n');
+    }
     _logfile.writeFD(msg);
 }
 
 void ServerLog::strerrLog(std::string msg)
 {
-    _logfile.writeFD(msg);
+    _logfile.writeFD("ERROR: ");
+    writeLog(msg);
 }
 
 void ServerLog::addTimeStamp()
@@ -34,7 +40,8 @@ void ServerLog::addTimeStamp()
 
     time (&rawtime);
     timeinfo = localtime (&rawtime);
-    
+
     _logfile.writeFD(asctime(timeinfo));
+    _logfile.writeByte(' ');
 
 }
