@@ -7,7 +7,7 @@
 #include "FileDesc.h"
 #include "TCPConn.h"
 
-class ServerLog : public ServerLog 
+class ServerLog
 {
 public:
     ServerLog();

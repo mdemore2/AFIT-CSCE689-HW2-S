@@ -7,6 +7,7 @@
 #include "TCPConn.h"
 #include "strfuncts.h"
 #include "PasswdMgr.h"
+#include "ServerLog.h"
 
 // The filename/path of the password file
 const char pwdfilename[] = "passwd";

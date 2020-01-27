@@ -26,8 +26,7 @@ TCPServer::TCPServer(){
 
    while(!eof)
    {
-      whitelistFile.readStr(newIP);
-      if(newIP == NULL)
+      if(whitelistFile.readStr(newIP) < 0)
       {
          eof = true;
       }
@@ -102,7 +101,7 @@ void TCPServer::listenSvr() {
          // Get their IP Address string to use in logging
          std::string ipaddr_str;
          new_conn->getIPAddrStr(ipaddr_str);
-         
+
          //check whitelist
          if(!checkWhitelist(ipaddr_str))
          {

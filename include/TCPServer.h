@@ -18,7 +18,7 @@ public:
    void listenSvr();
    void shutdown();
 
-   bool TCPServer::checkWhitelist(std::string ipaddr);
+   bool checkWhitelist(std::string ipaddr);
 
 private:
    // Class to manage the server socket

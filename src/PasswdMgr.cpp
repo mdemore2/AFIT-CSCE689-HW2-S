@@ -260,13 +260,13 @@ void PasswdMgr::hashArgon2(std::vector<uint8_t> &ret_hash, std::vector<uint8_t> 
 
    for(unsigned int i=0;i<saltlen;i++)
    {
-      salt[i] = *(in_salt)[i]
+      salt[i] = (*in_salt)[i];
    }
 
    uint8_t hash[hashlen];
 
    argon2i_hash_raw(2,(1<<16),1,in_passwd,strlen(in_passwd),salt,saltlen,hash,hashlen);
-   
+
    ret_hash.clear();
    ret_hash.reserve(hashlen);
 
