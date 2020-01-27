@@ -15,7 +15,28 @@
 const char whitelistFileName[] = "whitelist";
 const char serverlogFileName[] = "server.log";
 
-TCPServer::TCPServer(){ 
+TCPServer::TCPServer(){
+
+   //populate whitelist
+
+   FileFD whitelistFile = FileFD(whitelistFileName);
+
+   bool eof = false;
+   std::string newIP;
+
+   while(!eof)
+   {
+      whitelistFile.readStr(newIP);
+      if(newIP == NULL)
+      {
+         eof = true;
+      }
+      else
+      {
+         _whitelist.push_back(newIP);
+      }
+      
+   } 
 }
 
 
@@ -81,6 +102,20 @@ void TCPServer::listenSvr() {
          // Get their IP Address string to use in logging
          std::string ipaddr_str;
          new_conn->getIPAddrStr(ipaddr_str);
+         
+         //check whitelist
+         if(!checkWhitelist(ipaddr_str))
+         {
+            _server_log.writeLog("Connection from unrecognized IP address. IP: " + ipaddr_str);
+            new_conn->disconnect();
+         }
+         else
+         {
+            //log successful connection
+            _server_log.writeLog("Connection from recognized IP address. IP: " + ipaddr_str);
+         }
+         
+
 
 
          new_conn->sendText("Welcome to the CSCE 689 Server!\n");
@@ -128,6 +163,29 @@ void TCPServer::listenSvr() {
 void TCPServer::shutdown() {
 
    _sockfd.closeFD();
+}
+
+/***
+ * checkWhitelist - checks ip against whitelist
+ * 
+ * params - ipaddr from new connection
+ * 
+ * returns - true if ip in whitelist, else false 
+ * 
+ ***/
+bool TCPServer::checkWhitelist(std::string ipaddr)
+{
+   std::list<std::string>::iterator ptr;// = _whitelist.begin();
+
+   for(ptr = _whitelist.begin();ptr != _whitelist.end();ptr++)
+   {
+      if(ipaddr == *ptr)
+      {
+         return true;
+      }
+   }
+
+   return false;
 }
 
 
