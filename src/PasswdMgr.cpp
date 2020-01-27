@@ -85,9 +85,49 @@ bool PasswdMgr::checkPasswd(const char *name, const char *passwd) {
 
 bool PasswdMgr::changePasswd(const char *name, const char *passwd) {
 
-   // Insert your insane code here
+   FileFD pwfile(_pwd_file.c_str());
 
-   return true;
+   // You may need to change this code for your specific implementation
+
+   if (!pwfile.openFile(FileFD::readfd))
+      throw pwfile_error("Could not open passwd file for reading");
+
+   // Password file should be in the format username\n{32 byte hash}{16 byte salt}\n
+   bool eof = false;
+   while (!eof) {
+      std::string uname;
+      std::string readNewLine;
+
+      std::vector<uint8_t> hash, salt; //do these need to be pointers?
+      
+      try{
+
+         if(pwfile.readStr(uname) < 0) eof = true;
+   
+         if(uname.compare(name) == 0)
+         {
+            //write password
+            genSalt(&salt,saltlen);
+            hashArgon2(hash,salt,passwd,&salt);
+
+            pwfile.writeBytes(hash);
+            pwfile.writeBytes(salt);
+            pwfile.writeByte('\n');
+            //close and return
+            pwfile.closeFD();
+            return true;
+         }
+         else
+         {
+            if(pwfile.readStr(readNewLine) < 0) return false; //read last newline from hash/salt line
+         }
+
+      }catch(pwfile_error){}
+
+   }
+
+   pwfile.closeFD();
+   return false;
 }
 
 /*****************************************************************************************************
@@ -108,13 +148,15 @@ bool PasswdMgr::readUser(FileFD &pwfile, std::string &name, std::vector<uint8_t>
 {
    std::string readNewLine;
    try{
-   if(pwfile.readStr(readNewLine) < 0) return false; //read last newline from hash/salt line
 
-   if(pwfile.readStr(name) < 0) return false;
+      if(pwfile.readStr(name) < 0) return false;
    
-   if(pwfile.readBytes(hash,32) < 0) return false;
+      if(pwfile.readBytes(hash,32) < 0) return false;
   
-   if(pwfile.readBytes(salt,16) < 0) return false;
+      if(pwfile.readBytes(salt,16) < 0) return false;
+   
+      if(pwfile.readStr(readNewLine) < 0) return false; //read last newline from hash/salt line
+
    }catch(pwfile_error){}
 
 
@@ -228,7 +270,7 @@ void PasswdMgr::hashArgon2(std::vector<uint8_t> &ret_hash, std::vector<uint8_t> 
 
 void PasswdMgr::addUser(const char *name, const char *passwd) {
    
-   std::vector<uint8_t> hash, salt;
+   std::vector<uint8_t> hash, salt; //do these need to be pointers?
    std::string namePass(name);
    
    
