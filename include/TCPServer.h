@@ -6,6 +6,7 @@
 #include "Server.h"
 #include "FileDesc.h"
 #include "TCPConn.h"
+#include "ServerLog.h"
 
 class TCPServer : public Server 
 {
@@ -25,6 +26,7 @@ private:
    std::list<std::unique_ptr<TCPConn>> _connlist;
 
    std::list<std::string> _whitelist;
+   ServerLog _server_log;
 
 };
 

@@ -256,7 +256,24 @@ void PasswdMgr::hashArgon2(std::vector<uint8_t> &ret_hash, std::vector<uint8_t> 
   
    if(in_salt->size() < saltlen) throw std::runtime_error("invalid salt length");
 
-   argon2i_hash_raw(2,(1<<16),1,&in_passwd,strlen(in_passwd),&in_salt,saltlen,&ret_hash,hashlen);
+   uint8_t salt[saltlen];
+
+   for(unsigned int i=0;i<saltlen;i++)
+   {
+      salt[i] = *(in_salt)[i]
+   }
+
+   uint8_t hash[hashlen];
+
+   argon2i_hash_raw(2,(1<<16),1,in_passwd,strlen(in_passwd),salt,saltlen,hash,hashlen);
+   
+   ret_hash.clear();
+   ret_hash.reserve(hashlen);
+
+   for(unsigned int i=0; i<hashlen;i++)
+   {
+      ret_hash.push_back(hash[i]);
+   }
    
 
 }

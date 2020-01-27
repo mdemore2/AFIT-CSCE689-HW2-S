@@ -133,6 +133,14 @@ void TCPConn::getUsername() {
    {
       _status = s_passwd;
    }
+   else
+   {
+      std::string ipaddr;
+      getIPAddrStr(ipaddr);
+      std::string msg = "Unrecognized user. User: " + _username;
+      msg += " IP: " + ipaddr;
+      _server_log.writeLog(msg);
+   }
 }
 
 /**********************************************************************************************
@@ -148,10 +156,41 @@ void TCPConn::getPasswd() {
    std::string password;
    getUserInput(password);
 
+   std::string ipaddr;
+   getIPAddrStr(ipaddr);
+
+   std::string msg;
+
    if(passmgr.checkPasswd(_username.c_str(),password.c_str()))
    {
       _status = s_menu;
+      //log user + ip
+      msg = "Succssful Login. User:" + _username;
+      msg += " IP: " + ipaddr;
+      _server_log.writeLog(msg);
+      
+   
+
    }
+   else
+   {
+      _pwd_attempts++;
+   }
+
+   if(_pwd_attempts > 1)
+   {
+      //log username and ip
+      //std::string ipaddr;
+      //_connfd.getIPAddrStr(ipaddr);
+      msg = "Incorrect Password. User:" + _username;
+      msg += " IP: " + ipaddr;
+      _server_log.writeLog(msg);
+      
+      //disconnect
+      disconnect();
+
+   }
+   
 }
 
 /**********************************************************************************************
@@ -166,7 +205,7 @@ void TCPConn::getPasswd() {
 void TCPConn::changePassword() {
    
    //std::string newpwd;
-   getUserInput(newpwd);
+   //getUserInput(newpwd);
 
    if(_status == s_changepwd)
    {
@@ -313,6 +352,16 @@ void TCPConn::sendMenu() {
  *    Throws: runtime_error for unrecoverable issues
  **********************************************************************************************/
 void TCPConn::disconnect() {
+
+   //log username and ip
+   std::string ipaddr;
+   getIPAddrStr(ipaddr);
+
+   std::string msg = "Disconnect. User: " + _username;
+   msg += "IP: " + ipaddr;
+
+   _server_log.writeLog(msg);
+
    _connfd.closeFD();
 }
 

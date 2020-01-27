@@ -15,7 +15,7 @@
 const char whitelistFileName[] = "whitelist";
 const char serverlogFileName[] = "server.log";
 
-TCPServer::TCPServer(){ // :_server_log("server.log", 0) {
+TCPServer::TCPServer(){ 
 }
 
 
@@ -34,7 +34,7 @@ void TCPServer::bindSvr(const char *ip_addr, short unsigned int port) {
 
    struct sockaddr_in servaddr;
 
-   //_server_log.writeLog("Server started.");
+   _server_log.writeLog("Server started.");
 
    // Set the socket to nonblocking
    _sockfd.setNonBlocking();
@@ -71,7 +71,7 @@ void TCPServer::listenSvr() {
       if (_sockfd.hasData()) {
          TCPConn *new_conn = new TCPConn();
          if (!new_conn->accept(_sockfd)) {
-            // _server_log.strerrLog("Data received on socket but failed to accept.");
+            _server_log.strerrLog("Data received on socket but failed to accept.");
             continue;
          }
          std::cout << "***Got a connection***\n";
