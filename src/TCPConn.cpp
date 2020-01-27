@@ -6,9 +6,12 @@
 #include <iostream>
 #include "TCPConn.h"
 #include "strfuncts.h"
+#include "PasswdMgr.h"
 
 // The filename/path of the password file
 const char pwdfilename[] = "passwd";
+
+PasswdMgr passmgr = PasswdMgr(pwdfilename);
 
 TCPConn::TCPConn(){ // LogMgr &server_log):_server_log(server_log) {
 
@@ -62,7 +65,8 @@ void TCPConn::startAuthentication() {
    // Skipping this for now
    _status = s_username;
 
-   _connfd.writeFD("Username: "); 
+   _connfd.writeFD("Username: ");
+
 }
 
 /**********************************************************************************************
@@ -119,7 +123,16 @@ void TCPConn::handleConnection() {
  **********************************************************************************************/
 
 void TCPConn::getUsername() {
-   // Insert your mind-blowing code here
+   
+   //std::string username;
+   //get next line from socket
+   getUserInput(_username);
+
+   //find user
+   if(passmgr.checkUser(_username.c_str()))
+   {
+      _status = s_passwd;
+   }
 }
 
 /**********************************************************************************************
@@ -131,7 +144,14 @@ void TCPConn::getUsername() {
  **********************************************************************************************/
 
 void TCPConn::getPasswd() {
-   // Insert your astounding code here
+   
+   std::string password;
+   getUserInput(password);
+
+   if(passmgr.checkPasswd(_username.c_str(),password.c_str()))
+   {
+      _status = s_menu;
+   }
 }
 
 /**********************************************************************************************
@@ -144,7 +164,35 @@ void TCPConn::getPasswd() {
  **********************************************************************************************/
 
 void TCPConn::changePassword() {
-   // Insert your amazing code here
+   
+   //std::string newpwd;
+   getUserInput(newpwd);
+
+   if(_status == s_changepwd)
+   {
+      getUserInput(_newpwd);
+      _status == s_confirmpwd;
+   }
+   else
+   {
+      std::string checkPwd;
+      getUserInput(checkPwd);
+      if(checkPwd == _newpwd)
+      {
+         passmgr.changePasswd(_username.c_str(),_newpwd.c_str());
+         _newpwd.clear();
+      }
+      else
+      {
+         sendText("Passwords do not match.");
+      }
+      _status = s_menu;
+
+      
+   }
+   
+
+
 }
 
 
