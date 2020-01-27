@@ -12,6 +12,9 @@
 #include <sstream>
 #include "TCPServer.h"
 
+const char whitelistFileName[] = "whitelist";
+const char serverlogFileName[] = "server.log";
+
 TCPServer::TCPServer(){ // :_server_log("server.log", 0) {
 }
 
@@ -31,7 +34,7 @@ void TCPServer::bindSvr(const char *ip_addr, short unsigned int port) {
 
    struct sockaddr_in servaddr;
 
-   // _server_log.writeLog("Server started.");
+   //_server_log.writeLog("Server started.");
 
    // Set the socket to nonblocking
    _sockfd.setNonBlocking();
