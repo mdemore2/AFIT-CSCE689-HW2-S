@@ -185,7 +185,7 @@ public:
    FileFD(const char *filename);
    ~FileFD();
 
-   enum fd_file_type {readfd, writefd, appendfd};
+   enum fd_file_type {readfd, writefd, appendfd, rdwrfd};
 
    bool openFile(fd_file_type ftype);
 

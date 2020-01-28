@@ -321,7 +321,7 @@ FileFD::~FileFD() {
  ******************************************************************************************/
 
 bool FileFD::openFile(fd_file_type ftype) {
-   int file_flags[] = {O_RDONLY, O_WRONLY, O_WRONLY | O_APPEND};
+   int file_flags[] = {O_RDONLY, O_WRONLY, O_WRONLY | O_APPEND,O_RDWR};
 
    if ((_fd = open(_filename.c_str(), file_flags[ftype])) == -1)
       return false;

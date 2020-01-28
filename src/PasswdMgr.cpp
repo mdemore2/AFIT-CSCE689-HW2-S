@@ -89,7 +89,7 @@ bool PasswdMgr::changePasswd(const char *name, const char *passwd) {
 
    // You may need to change this code for your specific implementation
 
-   if (!pwfile.openFile(FileFD::readfd))
+   if (!pwfile.openFile(FileFD::rdwrfd))
       throw pwfile_error("Could not open passwd file for reading");
 
    // Password file should be in the format username\n{32 byte hash}{16 byte salt}\n
@@ -306,7 +306,7 @@ void PasswdMgr::addUser(const char *name, const char *passwd) {
       hashArgon2(hash,salt,passwd,&salt);
 
       FileFD pwfile(_pwd_file.c_str());
-      if (!pwfile.openFile(FileFD::readfd)) throw pwfile_error("Could not open passwd file for reading");
+      if (!pwfile.openFile(FileFD::rdwrfd)) throw pwfile_error("Could not open passwd file for reading");
 
       if(writeUser(pwfile,namePass,hash,salt) < 0) throw pwfile_error("Could not write user to file");
    }
