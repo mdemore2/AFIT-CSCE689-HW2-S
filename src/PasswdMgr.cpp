@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include <algorithm>
+#include <iterator>
+#include <vector>
 #include <cstring>
 #include <list>
 #include <ext/stdio_filebuf.h>
@@ -61,9 +63,16 @@ bool PasswdMgr::checkPasswd(const char *name, const char *passwd) {
 
    // Check if the user exists and get the passwd string
    if (!findUser(name, userhash, salt))
+      std::cout << "USER NOT FOUND";
       return false;
 
    hashArgon2(passhash, salt, passwd, &salt);
+
+   //std::copy(userhash.begin(),userhash.end(),std::ostream_iterator<uint8_t>(std::cout));
+   //std::copy(userhash.begin(),userhash.end(),std::ostream_iterator<uint8_t>(std::cout));
+
+   //std::cout << userhash;
+   //std::cout << passhash;
 
    if (userhash == passhash)
       return true;
@@ -275,10 +284,17 @@ void PasswdMgr::hashArgon2(std::vector<uint8_t> &ret_hash, std::vector<uint8_t> 
 
    ret_hash.clear();
    ret_hash.reserve(hashlen);
+   ret_salt.clear();
+   ret_salt.reserve(saltlen);
 
    for(unsigned int i=0; i<hashlen;i++)
    {
       ret_hash.push_back(hash[i]);
+   }
+
+   for(unsigned int i=0; i<saltlen;i++)
+   {
+      ret_salt.push_back(salt[i]);
    }
    
 
@@ -311,6 +327,8 @@ void PasswdMgr::addUser(const char *name, const char *passwd) {
       if (!pwfile.openFile(FileFD::appendfd)) throw pwfile_error("Could not open passwd file for reading");
 
       if(writeUser(pwfile,namePass,hash,salt) < 0) throw pwfile_error("Could not write user to file");
+
+      pwfile.closeFD();
    }
    
 }
