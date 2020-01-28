@@ -149,13 +149,16 @@ bool PasswdMgr::readUser(FileFD &pwfile, std::string &name, std::vector<uint8_t>
    std::string readNewLine;
    try{
 
-      if(pwfile.readStr(name) < 0) return false;
+      if(pwfile.readStr(name) < 0) throw pwfile_error("Error reading file");
+      if(name.empty()) return false;
    
-      if(pwfile.readBytes(hash,32) < 0) return false;
+      if(pwfile.readBytes(hash,32) < 0) throw pwfile_error("Error reading file");
+      if(hash.empty()) return false;
   
-      if(pwfile.readBytes(salt,16) < 0) return false;
+      if(pwfile.readBytes(salt,16) < 0) throw pwfile_error("Error reading file");
+      if(salt.empty()) return false;
    
-      if(pwfile.readStr(readNewLine) < 0) return false; //read last newline from hash/salt line
+      if(pwfile.readStr(readNewLine) < 0) throw pwfile_error("Error reading file");; //read last newline from hash/salt line
 
    }catch(pwfile_error){}
 
@@ -179,9 +182,9 @@ bool PasswdMgr::readUser(FileFD &pwfile, std::string &name, std::vector<uint8_t>
 int PasswdMgr::writeUser(FileFD &pwfile, std::string &name, std::vector<uint8_t> &hash, std::vector<uint8_t> &salt)
 {
    int results = 0;
+   std::vector<char> name_vector = std::vector<char>(name.begin(),name.end());
 
    try{
-   std::vector<char> name_vector(name.begin(),name.end());
 
    results += pwfile.writeBytes(name_vector);
    results += pwfile.writeByte('\n');
@@ -189,6 +192,7 @@ int PasswdMgr::writeUser(FileFD &pwfile, std::string &name, std::vector<uint8_t>
    results += pwfile.writeBytes(hash);
    results += pwfile.writeBytes(salt);
    results += pwfile.writeByte('\n');
+   
    } catch(pwfile_error){}
   
 
