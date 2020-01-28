@@ -20,6 +20,7 @@ TCPServer::TCPServer(){
    //populate whitelist
 
    FileFD whitelistFile = FileFD(whitelistFileName);
+   whitelistFile.openFile(FileFD::readfd);
 
    bool eof = false;
    std::string newIP;

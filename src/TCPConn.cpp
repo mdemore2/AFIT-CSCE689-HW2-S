@@ -127,12 +127,20 @@ void TCPConn::getUsername() {
    
    //std::string username;
    //get next line from socket
-   getUserInput(_username);
+   //std::string * usrname = &_username;
+   if(!getUserInput(_username))
+   {
+      sendText("error reading user input");
+   }
+   std::string msg = "ECHO: " + _username;
+   sendText(msg.c_str());
 
    //find user
    if(passmgr.checkUser(_username.c_str()))
    {
       _status = s_passwd;
+      return;
+      handleConnection();
    }
    else
    {
@@ -141,6 +149,8 @@ void TCPConn::getUsername() {
       std::string msg = "Unrecognized user. User: " + _username;
       msg += " IP: " + ipaddr;
       _server_log.writeLog(msg);
+      sendText("Unrecognized user.");
+      disconnect();
    }
 }
 

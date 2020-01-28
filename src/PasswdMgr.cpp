@@ -16,6 +16,7 @@ const int hashlen = 32;
 const int saltlen = 16;
 
 PasswdMgr::PasswdMgr(const char *pwd_file):_pwd_file(pwd_file) {
+   
 
 }
 
@@ -159,6 +160,7 @@ bool PasswdMgr::readUser(FileFD &pwfile, std::string &name, std::vector<uint8_t>
       if(salt.empty()) return false;
    
       if(pwfile.readStr(readNewLine) < 0) throw pwfile_error("Error reading pw file");; //read last newline from hash/salt line
+      if(readNewLine.empty()) return false; //idk about this?
 
    }catch(pwfile_error){}
 
@@ -306,7 +308,7 @@ void PasswdMgr::addUser(const char *name, const char *passwd) {
       hashArgon2(hash,salt,passwd,&salt);
 
       FileFD pwfile(_pwd_file.c_str());
-      if (!pwfile.openFile(FileFD::rdwrfd)) throw pwfile_error("Could not open passwd file for reading");
+      if (!pwfile.openFile(FileFD::appendfd)) throw pwfile_error("Could not open passwd file for reading");
 
       if(writeUser(pwfile,namePass,hash,salt) < 0) throw pwfile_error("Could not write user to file");
    }
