@@ -132,15 +132,14 @@ void TCPConn::getUsername() {
    {
       sendText("error reading user input");
    }
-   std::string msg = "ECHO: " + _username;
-   sendText(msg.c_str());
 
    //find user
    if(passmgr.checkUser(_username.c_str()))
    {
       _status = s_passwd;
-      return;
-      handleConnection();
+      //sendText("User Recognized.");
+      //return;
+      //handleConnection();
    }
    else
    {
@@ -164,6 +163,7 @@ void TCPConn::getUsername() {
 
 void TCPConn::getPasswd() {
    
+   sendText("Password: ");
    std::string password;
    getUserInput(password);
 
@@ -186,6 +186,7 @@ void TCPConn::getPasswd() {
    else
    {
       _pwd_attempts++;
+      sendText("Incorrect Password. Try Again.\n");
    }
 
    if(_pwd_attempts > 1)
@@ -197,6 +198,7 @@ void TCPConn::getPasswd() {
       msg += " IP: " + ipaddr;
       _server_log.writeLog(msg);
       
+      sendText("Too many attempts. Disconnecting.\n");
       //disconnect
       disconnect();
 
