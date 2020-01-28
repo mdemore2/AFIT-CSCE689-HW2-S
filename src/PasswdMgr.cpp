@@ -149,16 +149,16 @@ bool PasswdMgr::readUser(FileFD &pwfile, std::string &name, std::vector<uint8_t>
    std::string readNewLine;
    try{
 
-      if(pwfile.readStr(name) < 0) throw pwfile_error("Error reading file");
+      if(pwfile.readStr(name) < 0) throw pwfile_error("Error reading pw file");
       if(name.empty()) return false;
    
-      if(pwfile.readBytes(hash,32) < 0) throw pwfile_error("Error reading file");
+      if(pwfile.readBytes(hash,32) < 0) throw pwfile_error("Error reading pw file");
       if(hash.empty()) return false;
   
-      if(pwfile.readBytes(salt,16) < 0) throw pwfile_error("Error reading file");
+      if(pwfile.readBytes(salt,16) < 0) throw pwfile_error("Error reading pw file");
       if(salt.empty()) return false;
    
-      if(pwfile.readStr(readNewLine) < 0) throw pwfile_error("Error reading file");; //read last newline from hash/salt line
+      if(pwfile.readStr(readNewLine) < 0) throw pwfile_error("Error reading pw file");; //read last newline from hash/salt line
 
    }catch(pwfile_error){}
 

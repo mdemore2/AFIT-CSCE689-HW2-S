@@ -10,6 +10,7 @@ ServerLog::ServerLog(){
 
 ServerLog::ServerLog(std::string logfileName){
     _logfile =  FileFD(logfileName.c_str());
+    _logfile.openFile(FileFD::appendfd);
 }
 
 ServerLog::~ServerLog() {

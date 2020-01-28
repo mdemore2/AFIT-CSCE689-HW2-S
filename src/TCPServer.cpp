@@ -26,7 +26,9 @@ TCPServer::TCPServer(){
 
    while(!eof)
    {
-      if(whitelistFile.readStr(newIP) < 0)
+      if(whitelistFile.readStr(newIP) < 0) throw pwfile_error("Error reading whitelist file");
+
+      if(newIP.empty())
       {
          eof = true;
       }
