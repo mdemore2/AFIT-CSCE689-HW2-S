@@ -225,7 +225,6 @@ void TCPConn::changePassword() {
    //std::string newpwd;
    //getUserInput(newpwd);
 
-   sendText("Enter new password: ");
 
    if(_status == s_changepwd)
    {
@@ -236,6 +235,7 @@ void TCPConn::changePassword() {
    }
    else
    {
+      sendText("Re-enter new password: ");
       std::string checkPwd;
       getUserInput(checkPwd);
       clrNewlines(checkPwd);
