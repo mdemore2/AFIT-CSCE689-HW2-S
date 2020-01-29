@@ -69,7 +69,7 @@ bool PasswdMgr::checkPasswd(const char *name, const char *passwd) {
       return false;
    }
 
-   hashArgon2(passhash, salt, passwd, &salt);
+   hashArgon2(passhash, passwd, &salt);
    //hash userinput to compare to hash from passwd file
 
    FileFD temphash = FileFD("temp");
@@ -133,7 +133,7 @@ bool PasswdMgr::changePasswd(const char *name, const char *passwd) {
          {
             //write password
             genSalt(&salt,saltlen);
-            hashArgon2(hash,salt,passwd,&salt);
+            hashArgon2(hash,passwd,&salt);
 
             pwfile.writeBytes(hash);
             pwfile.writeBytes(salt);
@@ -286,7 +286,7 @@ bool PasswdMgr::findUser(const char *name, std::vector<uint8_t> &hash, std::vect
  *
  *    Throws: runtime_error if the salt passed in is not the right size
  *****************************************************************************************************/
-void PasswdMgr::hashArgon2(std::vector<uint8_t> &ret_hash, std::vector<uint8_t> &ret_salt, const char *in_passwd, std::vector<uint8_t> *in_salt) {
+void PasswdMgr::hashArgon2(std::vector<uint8_t> &ret_hash, const char *in_passwd, std::vector<uint8_t> *in_salt) {
   
    if(in_salt->size() < saltlen) throw std::runtime_error("invalid salt length"); //check if salt is valid
 
@@ -301,22 +301,16 @@ void PasswdMgr::hashArgon2(std::vector<uint8_t> &ret_hash, std::vector<uint8_t> 
 
    argon2i_hash_raw(2,(1<<16),1,in_passwd,strlen(in_passwd),salt,saltlen,hash,hashlen);
 
-   ret_hash.clear();
    ret_hash.reserve(hashlen);
-   ret_salt.clear();
-   ret_salt.reserve(saltlen);
-
-   //clear and populate hash and salt for return
+   ret_hash.clear();
+   
+   //clear and populate hash for return
 
    for(unsigned int i=0; i<hashlen;i++)
    {
       ret_hash.push_back(hash[i]);
    }
 
-   for(unsigned int i=0; i<saltlen;i++)
-   {
-      ret_salt.push_back(salt[i]);
-   }
    
 
 }
@@ -342,7 +336,7 @@ void PasswdMgr::addUser(const char *name, const char *passwd) {
    {
       //generate salt for user and hash password
       genSalt(&salt,saltlen);
-      hashArgon2(hash,salt,passwd,&salt);
+      hashArgon2(hash,passwd,&salt);
 
       FileFD pwfile(_pwd_file.c_str());
       if (!pwfile.openFile(FileFD::appendfd)) throw pwfile_error("Could not open passwd file for reading");
