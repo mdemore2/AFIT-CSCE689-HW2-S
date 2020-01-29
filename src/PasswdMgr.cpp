@@ -57,16 +57,34 @@ bool PasswdMgr::checkUser(const char *name) {
  *******************************************************************************************/
 
 bool PasswdMgr::checkPasswd(const char *name, const char *passwd) {
+
    std::vector<uint8_t> userhash; // hash from the password file
    std::vector<uint8_t> passhash; // hash derived from the parameter passwd
-   std::vector<uint8_t> salt;
+   std::vector<uint8_t> salt,presalt;
 
    // Check if the user exists and get the passwd string
    if (!findUser(name, userhash, salt))
-      std::cout << "USER NOT FOUND";
+   {  
+      throw pwfile_error("USER NOT FOUND");
       return false;
+   }
+
+   presalt = salt;
+
+   passhash = userhash;
 
    hashArgon2(passhash, salt, passwd, &salt);
+
+   FileFD temphash = FileFD("temp");
+
+   temphash.openFile(FileFD::writefd);
+   temphash.writeBytes(passhash);
+   temphash.closeFD();
+
+   temphash.openFile(FileFD::readfd);
+   temphash.readBytes(passhash,hashlen);
+   temphash.closeFD();
+
 
    //std::copy(userhash.begin(),userhash.end(),std::ostream_iterator<uint8_t>(std::cout));
    //std::copy(userhash.begin(),userhash.end(),std::ostream_iterator<uint8_t>(std::cout));
@@ -75,7 +93,23 @@ bool PasswdMgr::checkPasswd(const char *name, const char *passwd) {
    //std::cout << passhash;
 
    if (userhash == passhash)
+   {
       return true;
+   }
+   else
+   {
+      std::string msg = "HASH MISMATCH. UserHash: " + std::string(userhash.begin(),userhash.end());
+      msg += "\n PassHash: " + std::string(passhash.begin(),passhash.end());
+
+      msg += "\n PreSalt: " + std::string(presalt.begin(),presalt.end());
+      msg += "\n Salt: " + std::string(salt.begin(),salt.end());
+
+      msg += "\n User: " + std::string(name);
+      msg += "\n Password: " + std::string(passwd);
+
+      throw pwfile_error(msg);
+   }
+   
 
    return false;
 }
@@ -161,15 +195,16 @@ bool PasswdMgr::readUser(FileFD &pwfile, std::string &name, std::vector<uint8_t>
 
       if(pwfile.readStr(name) < 0) throw pwfile_error("Error reading pw file");
       if(name.empty()) return false;
+      clrNewlines(name);
    
-      if(pwfile.readBytes(hash,32) < 0) throw pwfile_error("Error reading pw file");
+      if(pwfile.readBytes(hash,hashlen) < 0) throw pwfile_error("Error reading pw file");
       if(hash.empty()) return false;
   
-      if(pwfile.readBytes(salt,16) < 0) throw pwfile_error("Error reading pw file");
+      if(pwfile.readBytes(salt,saltlen) < 0) throw pwfile_error("Error reading pw file");
       if(salt.empty()) return false;
    
       if(pwfile.readStr(readNewLine) < 0) throw pwfile_error("Error reading pw file");; //read last newline from hash/salt line
-      if(readNewLine.empty()) return false; //idk about this?
+      //if(readNewLine.empty()) return false; //idk about this?
 
    }catch(pwfile_error){}
 
@@ -244,8 +279,11 @@ bool PasswdMgr::findUser(const char *name, std::vector<uint8_t> &hash, std::vect
          eof = true;
          continue;
       }
+      clrNewlines(uname);
+      std::string cmpname = std::string(name);
+      clrNewlines(cmpname);
 
-      if (!uname.compare(name)) {
+      if (!uname.compare(cmpname)) {
          pwfile.closeFD();
          return true;
       }
@@ -275,7 +313,7 @@ void PasswdMgr::hashArgon2(std::vector<uint8_t> &ret_hash, std::vector<uint8_t> 
 
    for(unsigned int i=0;i<saltlen;i++)
    {
-      salt[i] = (*in_salt)[i];
+      salt[i] = in_salt->at(i);
    }
 
    uint8_t hash[hashlen];
@@ -339,6 +377,8 @@ void PasswdMgr::genSalt(std::vector<uint8_t> *s, const int len) {
         "0123456789"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         "abcdefghijklmnopqrstuvwxyz";
+
+   srand(time(NULL));
 
     for (int i = 0; i < len; ++i) {
         s->push_back( alphanum[rand() % (sizeof(alphanum) - 1)] );

@@ -132,6 +132,7 @@ void TCPConn::getUsername() {
    {
       sendText("error reading user input");
    }
+   clrNewlines(_username);
 
    //find user
    if(passmgr.checkUser(_username.c_str()))
@@ -165,7 +166,10 @@ void TCPConn::getPasswd() {
    
    sendText("Password: ");
    std::string password;
+
    getUserInput(password);
+   clrNewlines(password);
+   
 
    std::string ipaddr;
    getIPAddrStr(ipaddr);
@@ -179,7 +183,8 @@ void TCPConn::getPasswd() {
       msg = "Succssful Login. User:" + _username;
       msg += " IP: " + ipaddr;
       _server_log.writeLog(msg);
-      
+
+      sendMenu();
    
 
    }
@@ -220,16 +225,21 @@ void TCPConn::changePassword() {
    //std::string newpwd;
    //getUserInput(newpwd);
 
+   sendText("Enter new password: ");
+
    if(_status == s_changepwd)
    {
       getUserInput(_newpwd);
+      clrNewlines(_newpwd);
       _status == s_confirmpwd;
+      changePassword();
    }
    else
    {
       std::string checkPwd;
       getUserInput(checkPwd);
-      if(checkPwd == _newpwd)
+      clrNewlines(checkPwd);
+      if(checkPwd.compare(_newpwd))
       {
          passmgr.changePasswd(_username.c_str(),_newpwd.c_str());
          _newpwd.clear();
