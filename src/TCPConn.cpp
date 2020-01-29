@@ -14,7 +14,7 @@ const char pwdfilename[] = "passwd";
 
 PasswdMgr passmgr = PasswdMgr(pwdfilename);
 
-TCPConn::TCPConn(){ // LogMgr &server_log):_server_log(server_log) {
+TCPConn::TCPConn(){ 
 
 }
 
@@ -63,7 +63,6 @@ int TCPConn::sendText(const char *msg, int size) {
 
 void TCPConn::startAuthentication() {
 
-   // Skipping this for now
    _status = s_username;
 
    _connfd.writeFD("Username: ");
@@ -125,9 +124,7 @@ void TCPConn::handleConnection() {
 
 void TCPConn::getUsername() {
    
-   //std::string username;
    //get next line from socket
-   //std::string * usrname = &_username;
    if(!getUserInput(_username))
    {
       sendText("error reading user input");
@@ -138,17 +135,19 @@ void TCPConn::getUsername() {
    if(passmgr.checkUser(_username.c_str()))
    {
       _status = s_passwd;
-      //sendText("User Recognized.");
-      //return;
-      //handleConnection();
+    
    }
    else
    {
       std::string ipaddr;
       getIPAddrStr(ipaddr);
+
+      //log attempt
       std::string msg = "Unrecognized user. User: " + _username;
       msg += " IP: " + ipaddr;
       _server_log.writeLog(msg);
+
+      //disconnect user
       sendText("Unrecognized user.");
       disconnect();
    }
@@ -178,28 +177,30 @@ void TCPConn::getPasswd() {
 
    if(passmgr.checkPasswd(_username.c_str(),password.c_str()))
    {
+      //if match, login and send menu
       _status = s_menu;
       //log user + ip
-      msg = "Succssful Login. User:" + _username;
+      msg = "Succssful Login. User: " + _username;
       msg += " IP: " + ipaddr;
       _server_log.writeLog(msg);
 
       sendMenu();
+      return;
    
 
    }
    else
    {
+      //increment attempt counter
       _pwd_attempts++;
       sendText("Incorrect Password. Try Again.\n");
    }
 
+   //if two incorrect entries, disconnect
    if(_pwd_attempts > 1)
    {
       //log username and ip
-      //std::string ipaddr;
-      //_connfd.getIPAddrStr(ipaddr);
-      msg = "Incorrect Password. User:" + _username;
+      msg = "Incorrect Password. User: " + _username;
       msg += " IP: " + ipaddr;
       _server_log.writeLog(msg);
       
@@ -207,6 +208,11 @@ void TCPConn::getPasswd() {
       //disconnect
       disconnect();
 
+   }
+   else
+   {
+      //give extra chance to enter correct password
+      getPasswd();
    }
    
 }
@@ -221,20 +227,18 @@ void TCPConn::getPasswd() {
  **********************************************************************************************/
 
 void TCPConn::changePassword() {
-   
-   //std::string newpwd;
-   //getUserInput(newpwd);
-
 
    if(_status == s_changepwd)
    {
       getUserInput(_newpwd);
       clrNewlines(_newpwd);
       _status = s_confirmpwd;
+      //store new password, call again to verify
       changePassword();
    }
    else
    {
+      //verify new password
       sendText("Re-enter new password: ");
       std::string checkPwd;
       
@@ -247,11 +251,13 @@ void TCPConn::changePassword() {
          _newpwd.clear();
          sendText("Password changed.");
          sendMenu();
+         //update password if correct
       }
       else
       {
          sendText("Passwords do not match.");
          sendMenu();
+         //spit back out to menu if incorrect
       }
       _status = s_menu;
 
@@ -313,33 +319,28 @@ void TCPConn::getMenuChoice() {
       return;
    lower(cmd);      
 
-   // Don't be lazy and use my outputs--make your own!
    std::string msg;
    if (cmd.compare("hello") == 0) {
-      _connfd.writeFD("Hello back!\n");
+      _connfd.writeFD("Annyong.\n");
    } else if (cmd.compare("menu") == 0) {
       sendMenu();
    } else if (cmd.compare("exit") == 0) {
-      _connfd.writeFD("Disconnecting...goodbye!\n");
+      _connfd.writeFD("Disconnecting.\n");
       disconnect();
    } else if (cmd.compare("passwd") == 0) {
       _connfd.writeFD("New Password: ");
       _status = s_changepwd;
    } else if (cmd.compare("1") == 0) {
-      msg += "You want a prediction about the weather? You're asking the wrong Phil.\n";
-      msg += "I'm going to give you a prediction about this winter. It's going to be\n";
-      msg += "cold, it's going to be dark and it's going to last you for the rest of\n";
-      msg += "your lives!\n";
+      msg += "It is 2014 and I have no idea what is going on in my life!\n";
       _connfd.writeFD(msg);
    } else if (cmd.compare("2") == 0) {
-      _connfd.writeFD("42\n");
+      _connfd.writeFD("They say that the world is one, but if the world is one how come you never come around anymore?\n");
    } else if (cmd.compare("3") == 0) {
-      _connfd.writeFD("That seems like a terrible idea.\n");
+      _connfd.writeFD("My boy, we don't see each other much.\n");
    } else if (cmd.compare("4") == 0) {
-
+      _connfd.writeFD("And when I fall asleep, which part of me writes the dream?\n");
    } else if (cmd.compare("5") == 0) {
-      _connfd.writeFD("I'm singing, I'm in a computer and I'm siiiingiiiing! I'm in a\n");
-      _connfd.writeFD("computer and I'm siiiiiiinnnggiiinnggg!\n");
+      _connfd.writeFD("It's not going to happen.\n");
    } else {
       msg = "Unrecognized command: ";
       msg += cmd;
@@ -357,13 +358,12 @@ void TCPConn::getMenuChoice() {
 void TCPConn::sendMenu() {
    std::string menustr;
 
-   // Make this your own!
    menustr += "Available choices: \n";
-   menustr += "  1). Provide weather report.\n";
-   menustr += "  2). Learn the secret of the universe.\n";
-   menustr += "  3). Play global thermonuclear war\n";
-   menustr += "  4). Do nothing.\n";
-   menustr += "  5). Sing. Sing a song. Make it simple, to last the whole day long.\n\n";
+   menustr += "  1). Hey, Space Cadet\n";
+   menustr += "  2). Unforgiving Girl (She's Not A)\n";
+   menustr += "  3). My Boy\n";
+   menustr += "  4). Maud Gone\n";
+   menustr += "  5). Don't Remind Me\n\n";
    menustr += "Other commands: \n";
    menustr += "  Hello - self-explanatory\n";
    menustr += "  Passwd - change your password\n";
@@ -386,7 +386,7 @@ void TCPConn::disconnect() {
    getIPAddrStr(ipaddr);
 
    std::string msg = "Disconnect. User: " + _username;
-   msg += "IP: " + ipaddr;
+   msg += " IP: " + ipaddr;
 
    _server_log.writeLog(msg);
 

@@ -38,7 +38,8 @@ TCPServer::TCPServer(){
          _whitelist.push_back(newIP);
       }
       
-   } 
+   }
+   whitelistFile.closeFD(); 
 }
 
 
@@ -120,7 +121,7 @@ void TCPServer::listenSvr() {
 
 
 
-         new_conn->sendText("Welcome to the CSCE 689 Server!\n");
+         new_conn->sendText("Welcome to my Minecraft Server!\n");
 
          // Change this later
          new_conn->startAuthentication();

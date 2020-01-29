@@ -5,9 +5,8 @@
 #include "ServerLog.h"
 
 ServerLog::ServerLog(){
-    //_logfile =  FileFD("server.log");
     _logfile.openFile(FileFD::appendfd);
-
+    //open file for logging
 }
 
 ServerLog::ServerLog(std::string logfileName){
@@ -32,11 +31,13 @@ void ServerLog::writeLog(std::string msg)
 void ServerLog::strerrLog(std::string msg)
 {
     _logfile.writeFD("ERROR: ");
+    //add error prefix
     writeLog(msg);
 }
 
 void ServerLog::addTimeStamp()
 {
+    //write timestamp before message to be logged
     time_t rawtime;
     struct tm * timeinfo;
 
