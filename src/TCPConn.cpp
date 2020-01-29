@@ -230,23 +230,28 @@ void TCPConn::changePassword() {
    {
       getUserInput(_newpwd);
       clrNewlines(_newpwd);
-      _status == s_confirmpwd;
+      _status = s_confirmpwd;
       changePassword();
    }
    else
    {
       sendText("Re-enter new password: ");
       std::string checkPwd;
+      
       getUserInput(checkPwd);
       clrNewlines(checkPwd);
-      if(checkPwd.compare(_newpwd))
+
+      if(checkPwd == _newpwd)
       {
          passmgr.changePasswd(_username.c_str(),_newpwd.c_str());
          _newpwd.clear();
+         sendText("Password changed.");
+         sendMenu();
       }
       else
       {
          sendText("Passwords do not match.");
+         sendMenu();
       }
       _status = s_menu;
 
